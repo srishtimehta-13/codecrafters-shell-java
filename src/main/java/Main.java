@@ -4,6 +4,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
+        String currentDirectory = System.getProperty("user.dir");
 
         while (true) {
             System.out.print("$ ");
@@ -26,13 +27,13 @@ public class Main {
                     System.out.println();
             }
             else if(parts[0].equals("pwd")){
-                System.out.println(System.getProperty("user.dir"));
+                System.out.println(System.getProperty(currentDirectory));
             }
 
             else if(parts[0].equals("type")){
                 if(parts.length >1){
                     String cmd = parts[1];
-                    if(cmd.equals("echo")||cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd")){
+                    if(cmd.equals("echo")||cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd") || cmd.equals("cd")){
                         System.out.println(cmd + " is a shell builtin");
                     }
                     else{
@@ -51,6 +52,17 @@ public class Main {
                         if(!found){
                             System.out.println(cmd + ": not found");
                         }
+                    }
+                }
+            }
+            else if (parts[0].equals("cd")){
+                if(parts.length > 1){
+                    File dir = new File(parts[1]);
+                    if(dir.exists() && dir.isDirectory()){
+                        currentDirectory = dir.getAbsolutePath();
+                    }
+                    else{
+                        System.out.println("cd: "+ parts[1]+ ": No such file or directort");
                     }
                 }
             }
@@ -73,6 +85,7 @@ public class Main {
                 if (found) {
 
                     ProcessBuilder pb = new ProcessBuilder("sh", "-c", command);
+                    pb.directory(new File(currentDirectory));
                     pb.inheritIO();
 
                     Process process = pb.start();

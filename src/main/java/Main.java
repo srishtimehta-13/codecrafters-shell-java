@@ -110,16 +110,16 @@ public class Main {
                         String path = System.getenv("PATH");
                         String [] directories = path.split(java.io.File.pathSeparator);
 
-                        boolean  found = false;
+                        File executable = null;
                         for(String dir : directories){
                             File file = new File(dir,cmd);
                             if(file.exists() && file.canExecute()){
                                 System.out.println(cmd + " is " + file.getAbsolutePath());
-                                found = true;
+                                executable = file;
                                 break;
                             }
                         }
-                        if(!found){
+                        if(executable == null){
                             System.out.println(cmd + ": not found");
                         }
                     }
@@ -154,20 +154,21 @@ public class Main {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
-                boolean found = false;
+                File executable = null;
 
                 for (String dir : dirs) {
 
                     File file = new File(dir, parts.get(0));
 
                     if (file.exists() && file.canExecute()) {
-                    found = true;
+                    executable = file;
                     break;
                     }
                 }
 
-                if (found) {
-
+                if (executable != null) {
+                    List<String> cmd = new ArrayList<>(parts);
+                    cmd.set(0, executable.getAbsolutePath());
                     ProcessBuilder pb = new ProcessBuilder(parts);
                     pb.directory(new File(currentDirectory));
                     pb.inheritIO();

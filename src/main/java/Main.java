@@ -27,7 +27,7 @@ public class Main {
                     System.out.println();
             }
             else if(parts[0].equals("pwd")){
-                System.out.println(System.getProperty(currentDirectory));
+                System.out.println(currentDirectory);
             }
 
             else if(parts[0].equals("type")){
@@ -62,7 +62,7 @@ public class Main {
                         currentDirectory = dir.getAbsolutePath();
                     }
                     else{
-                        System.out.println("cd: "+ parts[1]+ ": No such file or directort");
+                        System.out.println("cd: "+ parts[1]+ ": No such file or directory");
                     }
                 }
             }

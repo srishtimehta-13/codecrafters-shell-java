@@ -16,7 +16,7 @@ public class Main {
                 break; // or system.exist(0)
             }
 
-            else if(parts[0].equals("echo ")){
+            else if(parts[0].equals("echo")){
                 if(parts.length >1)
                     System.out.println(parts[1]);
                 else
@@ -34,7 +34,9 @@ public class Main {
                     }
                 }
             }
-            System.out.println(command + ": command not found");
+            else{
+                System.out.println(command + ": command not found");
+            }
         }
     }
 }

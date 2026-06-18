@@ -58,12 +58,19 @@ public class Main {
             else if (parts[0].equals("cd")) {
 
                 if (parts.length > 1) {
+                    String destination;
+
+                    if (parts[1].equals("~")) {
+                        destination = System.getenv("HOME");
+                    } else {
+                        destination = parts[1];
+                    }
                     File dir;
 
-                    if (new File(parts[1]).isAbsolute()) {
-                        dir = new File(parts[1]);              // Absolute path
+                    if (new File(destination).isAbsolute()) {
+                        dir = new File(destination);              // Absolute path
                     } else {
-                        dir = new File(currentDirectory, parts[1]); // Relative path
+                        dir = new File(currentDirectory, destination); // Relative path
                     }
 
                     if (dir.exists() && dir.isDirectory()) {

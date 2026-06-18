@@ -13,13 +13,14 @@ public class Main {
         boolean escaping = false;
 
         for (int i = 0; i < command.length(); i++) {
+            char ch = command.charAt(i);
+
             if(escaping){
                 current.append(ch);
                 escaping = false;
                 continue;
             }
 
-            char ch = command.charAt(i);
 
             if(ch == '\\' && !inSingleQuote && !inDoubleQuote){
                 escaping = true;

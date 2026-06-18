@@ -10,13 +10,29 @@ public class Main {
             System.out.flush();
 
             String command = sc.nextLine();
-            if(command.equals("exit")){
+            String [] parts  = command.split(" ",2);
+
+            if(parts[0].equals("exit")){
                 break; // or system.exist(0)
             }
 
-            if(command.startsWith("echo ")){
-                System.out.println(command.substring(5));
-                continue;
+            else if(parts[0].equals("echo ")){
+                if(parts.length >1)
+                    System.out.println(parts[1]);
+                else
+                    System.out.println();
+            }
+
+            else if(parts[0].equals("type")){
+                if(parts.length >1){
+                    String cmd = parts[1];
+                    if(cmd.equals("echo")||cmd.equals("exit") || cmd.equals("type")){
+                        System.out.println(cmd + " is a shell builtin");
+                    }
+                    else{
+                        System.out.println(cmd +": not found");
+                    }
+                }
             }
             System.out.println(command + ": command not found");
         }

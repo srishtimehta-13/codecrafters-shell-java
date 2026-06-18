@@ -57,9 +57,9 @@ public class Main {
             }
             else if (parts[0].equals("cd")){
                 if(parts.length > 1){
-                    File dir = new File(parts[1]);
+                    File dir = new File(currentDirectory,parts[1]);
                     if(dir.exists() && dir.isDirectory()){
-                        currentDirectory = dir.getAbsolutePath();
+                        currentDirectory = dir.getCanonicalPath();
                     }
                     else{
                         System.out.println("cd: "+ parts[1]+ ": No such file or directory");

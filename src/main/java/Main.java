@@ -218,10 +218,13 @@ public class Main {
                 }
 
                 if (executable != null) {
-                    List<String> cmd = new ArrayList<>(parts);
-                    cmd.set(0, executable.getAbsolutePath());
-                    ProcessBuilder pb = new ProcessBuilder(cmd);
+
+                    ProcessBuilder pb = new ProcessBuilder(parts);
                     pb.directory(new File(currentDirectory));
+
+                    // Preserve the PATH so ProcessBuilder can find the executable
+                    pb.environment().put("PATH", System.getenv("PATH"));
+
                     if (redirectOutput) {
                         pb.redirectOutput(new File(outputFile));
                         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -231,7 +234,6 @@ public class Main {
 
                     Process process = pb.start();
                     process.waitFor();
-
                 } else {
 
                     System.out.println(command + ": command not found");

@@ -55,14 +55,21 @@ public class Main {
                     }
                 }
             }
-            else if (parts[0].equals("cd")){
-                if(parts.length > 1){
-                    File dir = new File(currentDirectory,parts[1]);
-                    if(dir.exists() && dir.isDirectory()){
-                        currentDirectory = dir.getCanonicalPath();
+            else if (parts[0].equals("cd")) {
+
+                if (parts.length > 1) {
+                    File dir;
+
+                    if (new File(parts[1]).isAbsolute()) {
+                        dir = new File(parts[1]);              // Absolute path
+                    } else {
+                        dir = new File(currentDirectory, parts[1]); // Relative path
                     }
-                    else{
-                        System.out.println("cd: "+ parts[1]+ ": No such file or directory");
+
+                    if (dir.exists() && dir.isDirectory()) {
+                        currentDirectory = dir.getCanonicalPath();
+                    } else {
+                        System.out.println("cd: " + parts[1] + ": No such file or directory");
                     }
                 }
             }

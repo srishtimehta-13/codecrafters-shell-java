@@ -1,6 +1,41 @@
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 public class Main {
+    private static List<String> parseCommand(String command) {
+
+        List<String> tokens = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+
+        boolean inSingleQuote = false;
+
+        for (int i = 0; i < command.length(); i++) {
+
+            char ch = command.charAt(i);
+
+            if (ch == '\'') {
+                inSingleQuote = !inSingleQuote;
+            }
+            else if (Character.isWhitespace(ch) && !inSingleQuote) {
+
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+
+            }
+            else {
+                current.append(ch);
+            }
+
+        }
+
+        if (current.length() > 0)
+            tokens.add(current.toString());
+
+        return tokens;
+    }
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
@@ -11,28 +46,28 @@ public class Main {
             System.out.flush();
 
             String command = sc.nextLine();
-            String [] parts  = command.trim().split("\\s+");
+            List<String> parts = parseCommand(command);
 
-            if(parts[0].equals("exit")){
+            if(parts.get(0).equals("exit")){
                 break; // or system.exist(0)
             }
 
-            else if(parts[0].equals("echo")){
-                for(int i = 1;i<parts.length;i++){
+            else if(parts.get(0).equals("echo")){
+                for(int i = 1;i<parts.size();i++){
                     if(i>1){
                         System.out.print(" ");
                     }
-                    System.out.print(parts[i]);
+                    System.out.print(parts.get(i));
                 }
                     System.out.println();
             }
-            else if(parts[0].equals("pwd")){
+            else if(parts.get(0).equals("pwd")){
                 System.out.println(currentDirectory);
             }
 
-            else if(parts[0].equals("type")){
-                if(parts.length >1){
-                    String cmd = parts[1];
+            else if(parts.get(0).equals("type")){
+                if(parts.size() >1){
+                    String cmd = parts.get(1);
                     if(cmd.equals("echo")||cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd") || cmd.equals("cd")){
                         System.out.println(cmd + " is a shell builtin");
                     }
@@ -55,15 +90,15 @@ public class Main {
                     }
                 }
             }
-            else if (parts[0].equals("cd")) {
+            else if (parts.get(0).equals("cd")) {
 
-                if (parts.length > 1) {
+                if (parts.size() > 1) {
                     String destination;
 
-                    if (parts[1].equals("~")) {
+                    if (parts.get(1).equals("~")) {
                         destination = System.getenv("HOME");
                     } else {
-                        destination = parts[1];
+                        destination = parts.get(1);
                     }
                     File dir;
 
@@ -76,7 +111,7 @@ public class Main {
                     if (dir.exists() && dir.isDirectory()) {
                         currentDirectory = dir.getCanonicalPath();
                     } else {
-                        System.out.println("cd: " + parts[1] + ": No such file or directory");
+                        System.out.println("cd: " + parts.get(1) + ": No such file or directory");
                     }
                 }
             }
@@ -88,7 +123,7 @@ public class Main {
 
                 for (String dir : dirs) {
 
-                    File file = new File(dir, parts[0]);
+                    File file = new File(dir, parts.get(0));
 
                     if (file.exists() && file.canExecute()) {
                     found = true;
@@ -98,7 +133,7 @@ public class Main {
 
                 if (found) {
 
-                    ProcessBuilder pb = new ProcessBuilder("sh", "-c", command);
+                    ProcessBuilder pb = new ProcessBuilder(parts);
                     pb.directory(new File(currentDirectory));
                     pb.inheritIO();
 

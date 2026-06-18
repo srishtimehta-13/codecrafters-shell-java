@@ -10,8 +10,12 @@ public class Main {
             System.out.flush();
 
             String command = sc.nextLine();
+            if(command.equals("exit")){
+                break; // or system.exist(0)
+            }
 
             System.out.println(command + ": command not found");
         }
     }
 }
+

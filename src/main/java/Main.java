@@ -22,9 +22,28 @@ public class Main {
             }
 
 
-            if(ch == '\\' && !inSingleQuote && !inDoubleQuote){
-                escaping = true;
-                continue;
+            if(ch == '\\'){
+                if(!inSingleQuote && !inDoubleQuote){
+                    escaping = true;
+                    continue;
+                }
+
+                if(inDoubleQuote){
+                    if(i+1 < command.length()){
+                        char next = command.charAt(i+1);
+                        if(next == '"' || next =='\\'){
+                            current.append(next);
+                            i++;
+                        }
+                        else{
+                            current.append('\\');
+                        }
+                        continue;
+                    }
+                    current.append('\\');
+                    continue;
+                }
+                
             }
 
             if (ch == '\'' && !inDoubleQuote) {

@@ -1,5 +1,5 @@
+import java.io.File;
 import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
@@ -30,7 +30,21 @@ public class Main {
                         System.out.println(cmd + " is a shell builtin");
                     }
                     else{
-                        System.out.println(cmd +": not found");
+                        String path = System.getenv("PATH");
+                        String [] directories = path.split(java.io.File.pathSeparator);
+
+                        boolean  found = false;
+                        for(String dir : directories){
+                            File file = new File(dir,cmd);
+                            if(file.exists() && file.canExecute()){
+                                System.out.println(cmd + " is " + file.getAbsolutePath());
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found){
+                            System.out.println(cmd + ": not found");
+                        }
                     }
                 }
             }

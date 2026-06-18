@@ -52,15 +52,33 @@ public class Main {
                 }
             }
             else{
-                try {
+                String path = System.getenv("PATH");
+                String[] dirs = path.split(File.pathSeparator);
+
+                boolean found = false;
+
+                for (String dir : dirs) {
+
+                    File file = new File(dir, parts[0]);
+
+                    if (file.exists() && file.canExecute()) {
+                    found = true;
+                    break;
+                    }
+                }
+
+                if (found) {
+
                     ProcessBuilder pb = new ProcessBuilder("sh", "-c", command);
                     pb.inheritIO();
 
                     Process process = pb.start();
                     process.waitFor();
 
-                } catch (Exception e) {
+                } else {
+
                     System.out.println(command + ": command not found");
+
                 }
             }
         }

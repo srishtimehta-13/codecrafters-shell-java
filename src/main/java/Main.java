@@ -10,16 +10,19 @@ public class Main {
             System.out.flush();
 
             String command = sc.nextLine();
-            String [] parts  = command.split(" ",2);
+            String [] parts  = command.trim().split("\\s+");
 
             if(parts[0].equals("exit")){
                 break; // or system.exist(0)
             }
 
             else if(parts[0].equals("echo")){
-                if(parts.length >1)
-                    System.out.println(parts[1]);
-                else
+                for(int i = 1;i<parts.length;i++){
+                    if(i>1){
+                        System.out.print(" ");
+                    }
+                    System.out.print(parts[i]);
+                }
                     System.out.println();
             }
 
@@ -49,7 +52,27 @@ public class Main {
                 }
             }
             else{
-                System.out.println(command + ": command not found");
+                String path = System.getenv("PATH");
+                String [] dirs = path.split(File.pathSeparator);
+                File executable = null;
+                for(String dir: dirs){
+                    File file = new File(dir,parts[0]);
+
+                    if(file.exists() && file.canExecute()){
+                        executable = file;
+                        break;
+                    }
+                }
+                if(executable != null){
+                    parts[0] = executable.getAbsolutePath();
+                    ProcessBuilder pb = new ProcessBuilder(parts);
+                    pb.inheritIO();
+                    Process process = pb.start();
+                    process.waitFor();
+                }
+                else{
+                    System.out.println(command + ": command not found");
+                }
             }
         }
     }

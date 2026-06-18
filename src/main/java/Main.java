@@ -9,15 +9,19 @@ public class Main {
         StringBuilder current = new StringBuilder();
 
         boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
         for (int i = 0; i < command.length(); i++) {
 
             char ch = command.charAt(i);
 
-            if (ch == '\'') {
+            if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
             }
-            else if (Character.isWhitespace(ch) && !inSingleQuote) {
+            else if (ch == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+            }
+            else if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
 
                 if (current.length() > 0) {
                     tokens.add(current.toString());

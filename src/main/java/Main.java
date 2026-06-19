@@ -78,13 +78,11 @@ public class Main {
         int jobNumber;
         Process process;
         String command;
-        String status;
 
         Job(int jobNumber, Process process, String command, String status) {
             this.jobNumber = jobNumber;
             this.process = process;
             this.command = command;
-            this.status = status;
         }
     }
 
@@ -305,43 +303,59 @@ public class Main {
                 int lastRunning = -1;
                 int secondLastRunning = -1;
 
-                // Find the last two running jobs
+                // Find the last two RUNNING jobs
                 for (int i = jobs.size() - 1; i >= 0; i--) {
                     if (jobs.get(i).process.isAlive()) {
                         if (lastRunning == -1) {
-                            lastRunning = i;
-                        } else {
+                            lastRunning = i; 
+                        }else {
                             secondLastRunning = i;
                             break;
                         }
                     }
                 }
 
-                // Print jobs in order
+                List<Job> finishedJobs = new ArrayList<>();
+
                 for (int i = 0; i < jobs.size(); i++) {
 
                     Job job = jobs.get(i);
 
-                    if (!job.process.isAlive()) {
-                        continue;
-                    }
+                    if (job.process.isAlive()) {
 
-                    char marker = ' ';
-                    if (i == lastRunning) {
-                        marker = '+';
-                    } else if (i == secondLastRunning) {
-                        marker = '-';
-                    }
+                        char marker = ' ';
+                        if (i == lastRunning) {
+                            marker = '+'; 
+                        }else if (i == secondLastRunning) {
+                            marker = '-';
+                        }
 
-                    System.out.printf(
-                            "[%d]%c  %-24s%s%n",
-                            job.jobNumber,
-                            marker,
-                            job.status,
-                            job.command
-                    );
+                        System.out.printf(
+                                "[%d]%c  %-24s%s &%n",
+                                job.jobNumber,
+                                marker,
+                                "Running",
+                                job.command
+                        );
+
+                    } else {
+
+                        System.out.printf(
+                                "[%d]+  %-24s%s%n",
+                                job.jobNumber,
+                                "Done",
+                                job.command
+                        );
+
+                        finishedJobs.add(job);
+                    }
                 }
-            } else {
+                jobs.removeAll(finishedJobs);
+            }
+
+            // Print jobs in order
+            
+        }else {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
@@ -387,7 +401,7 @@ public class Main {
                     Process process = pb.start();
                     if (background) {
                         Job job = new Job(
-                                nextJobNumber, process, command, "Running"
+                                nextJobNumber, process, command
                         );
                         jobs.add(job);
                         System.out.println("[" + nextJobNumber + "] " + process.pid());
@@ -419,6 +433,6 @@ public class Main {
 
                 }
             }
-        }
     }
+}
 }

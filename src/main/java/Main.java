@@ -136,7 +136,19 @@ public class Main {
     }
 
     static List<Job> jobs = new ArrayList<>();
-    static int nextJobNumber = 1;
+
+    private static int getNextJobNumber() {
+        if (jobs.isEmpty()) {
+            return 1;
+        }
+
+        int max = 0;
+        for (Job job : jobs) {
+            max = Math.max(max, job.jobNumber);
+        }
+
+        return max + 1;
+    }
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
@@ -395,12 +407,12 @@ public class Main {
 
                     Process process = pb.start();
                     if (background) {
-                        Job job = new Job(
-                                nextJobNumber, process, String.join(" ", parts)
-                        );
+                        int jobNumber = getNextJobNumber();
+
+                        Job job = new Job(jobNumber, process, String.join(" ", parts));
                         jobs.add(job);
-                        System.out.println("[" + nextJobNumber + "] " + process.pid());
-                        nextJobNumber++;
+
+                        System.out.println("[" + jobNumber + "] " + process.pid());
                     } else {
                         process.waitFor();
                     }

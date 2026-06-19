@@ -169,22 +169,30 @@ public class Main {
         Process p1 = pb1.start();
         Process p2 = pb2.start();
 
-        Thread t = new Thread(() -> {
+        Thread pipeThread = new Thread(() -> {
             try (
                     var in = p1.getInputStream(); var out = p2.getOutputStream()) {
                 in.transferTo(out);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ignored) {
+                // head exited -> broken pipe is expected
             }
         });
 
-        t.start();
+        pipeThread.start();
 
+        // Print output of second command
         p2.getInputStream().transferTo(System.out);
 
-        t.join();
-        p1.waitFor();
+        // Wait only for second command
         p2.waitFor();
+
+        // Stop first command if it's still running (tail -f)
+        if (p1.isAlive()) {
+            p1.destroy();
+            p1.waitFor();
+        }
+
+        pipeThread.join();
     }
 
     public static void main(String[] args) throws Exception {

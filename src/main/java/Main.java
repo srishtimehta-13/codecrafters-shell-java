@@ -138,9 +138,9 @@ public class Main {
                 }
             }
             if (!parts.isEmpty() && parts.get(parts.size() - 1).equals("&")) {
-                    background = true;
-                    parts.remove(parts.size() - 1);
-                }
+                background = true;
+                parts.remove(parts.size() - 1);
+            }
 
             if (parts.get(0).equals("exit")) {
                 break; // or system.exist(0)
@@ -301,58 +301,102 @@ public class Main {
 
                 List<Job> finishedJobs = new ArrayList<>();
 
-                int lastRunning = -1;
-                int secondLastRunning = -1;
-
-// Find last two RUNNING jobs
-                for (int i = jobs.size() - 1; i >= 0; i--) {
-                    if (jobs.get(i).process.isAlive()) {
-                        if (lastRunning == -1) {
-                            lastRunning = i; 
-                        }else {
-                            secondLastRunning = i;
-                            break;
-                        }
-                    }
-                }
+                // Current job (+) and previous job (-) are based on the
+                // CURRENT job table, including jobs that are already done.
+                int last = jobs.size() - 1;
+                int secondLast = jobs.size() - 2;
 
                 for (int i = 0; i < jobs.size(); i++) {
 
                     Job job = jobs.get(i);
 
-                    if (job.process.isAlive()) {
+                    char marker = ' ';
+                    if (i == last) {
+                        marker = '+';
+                    } else if (i == secondLast) {
+                        marker = '-';
+                    }
 
-                        char marker = ' ';
-                        if (i == lastRunning) {
-                            marker = '+'; 
-                        }else if (i == secondLastRunning) {
-                            marker = '-';
-                        }
+                    if (job.process.isAlive()) {
 
                         System.out.printf(
                                 "[%d]%c  %-24s%s &%n",
                                 job.jobNumber,
                                 marker,
                                 "Running",
-                                job.command);
+                                job.command
+                        );
 
                     } else {
 
-                        // Reap the process
+                        // reap the process
                         job.process.waitFor();
 
                         System.out.printf(
-                                "[%d]+  %-24s%s%n",
+                                "[%d]%c  %-24s%s%n",
                                 job.jobNumber,
+                                marker,
                                 "Done",
-                                job.command);
+                                job.command
+                        );
 
                         finishedJobs.add(job);
                     }
                 }
 
+                // Remove done jobs AFTER printing them
                 jobs.removeAll(finishedJobs);
-            } else {
+            } else if (parts.get(0).equals("jobs")) {
+
+                List<Job> finishedJobs = new ArrayList<>();
+
+                // Current job (+) and previous job (-) are based on the
+                // CURRENT job table, including jobs that are already done.
+                int last = jobs.size() - 1;
+                int secondLast = jobs.size() - 2;
+
+                for (int i = 0; i < jobs.size(); i++) {
+
+                    Job job = jobs.get(i);
+
+                    char marker = ' ';
+                    if (i == last) {
+                        marker = '+';
+                    } else if (i == secondLast) {
+                        marker = '-';
+                    }
+
+                    if (job.process.isAlive()) {
+
+                        System.out.printf(
+                                "[%d]%c  %-24s%s &%n",
+                                job.jobNumber,
+                                marker,
+                                "Running",
+                                job.command
+                        );
+
+                    } else {
+
+                        // reap the process
+                        job.process.waitFor();
+
+                        System.out.printf(
+                                "[%d]%c  %-24s%s%n",
+                                job.jobNumber,
+                                marker,
+                                "Done",
+                                job.command
+                        );
+
+                        finishedJobs.add(job);
+                    }
+                }
+
+                // Remove done jobs AFTER printing them
+                jobs.removeAll(finishedJobs);
+            }
+            else {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
@@ -430,6 +474,6 @@ public class Main {
 
                 }
             }
-        }
     }
+}
 }

@@ -86,11 +86,19 @@ public class Main {
             List<String> parts = parseCommand(command);
             String outputFile = null;
             boolean redirectOutput = false;
+            String errorFile = null;
+            boolean redirectError = false;
             for (int i = 0; i < parts.size(); i++) {
                 if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
                     redirectOutput = true;
                     outputFile = parts.get(i + 1);
                     parts = new ArrayList<>(parts.subList(0, i));
+                    break;
+                }
+                if(parts.get(i).equals("2>")){
+                    redirectError = true;
+                    errorFile = parts.get(i+1);
+                    parts = new ArrayList<>(parts.subList(0,i));
                     break;
                 }
             }
@@ -227,10 +235,17 @@ public class Main {
 
                     if (redirectOutput) {
                         pb.redirectOutput(new File(outputFile));
-                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        
                     } else {
-                        pb.inheritIO();
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                     }
+                    if (redirectOutput) {
+                        pb.redirectError(new File(errorFile));
+                        
+                    } else {
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    }
+
 
                     Process process = pb.start();
                     process.waitFor();

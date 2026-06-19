@@ -79,7 +79,7 @@ public class Main {
         Process process;
         String command;
 
-        Job(int jobNumber, Process process, String command, String status) {
+        Job(int jobNumber, Process process, String command) {
             this.jobNumber = jobNumber;
             this.process = process;
             this.command = command;
@@ -300,10 +300,12 @@ public class Main {
                 }
             } else if (parts.get(0).equals("jobs")) {
 
+                List<Job> finishedJobs = new ArrayList<>();
+
                 int lastRunning = -1;
                 int secondLastRunning = -1;
 
-                // Find the last two RUNNING jobs
+// Find last two RUNNING jobs
                 for (int i = jobs.size() - 1; i >= 0; i--) {
                     if (jobs.get(i).process.isAlive()) {
                         if (lastRunning == -1) {
@@ -314,8 +316,6 @@ public class Main {
                         }
                     }
                 }
-
-                List<Job> finishedJobs = new ArrayList<>();
 
                 for (int i = 0; i < jobs.size(); i++) {
 
@@ -335,27 +335,25 @@ public class Main {
                                 job.jobNumber,
                                 marker,
                                 "Running",
-                                job.command
-                        );
+                                job.command);
 
                     } else {
+
+                        // Reap the process
+                        job.process.waitFor();
 
                         System.out.printf(
                                 "[%d]+  %-24s%s%n",
                                 job.jobNumber,
                                 "Done",
-                                job.command
-                        );
+                                job.command);
 
                         finishedJobs.add(job);
                     }
                 }
-                jobs.removeAll(finishedJobs);
-            }
 
-            // Print jobs in order
-            
-        }else {
+                jobs.removeAll(finishedJobs);
+            } else {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
@@ -433,6 +431,6 @@ public class Main {
 
                 }
             }
+        }
     }
-}
 }

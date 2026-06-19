@@ -237,9 +237,9 @@ public class Main {
                         pb.redirectOutput(new File(outputFile));
                         
                     } else {
-                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                     }
-                    if (redirectOutput) {
+                    if (redirectError) {
                         pb.redirectError(new File(errorFile));
                         
                     } else {

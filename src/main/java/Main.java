@@ -309,7 +309,7 @@ public class Main {
 
                     // Preserve the PATH so ProcessBuilder can find the executable
                     pb.environment().put("PATH", System.getenv("PATH"));
-
+                    pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
                     if (redirectOutput) {
                         if (appendOutput) {
                             pb.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(outputFile)));

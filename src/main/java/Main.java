@@ -90,6 +90,8 @@ public class Main {
             boolean redirectError = false;
             boolean appendOutput = false;
             boolean appendError = false;
+            boolean background = false;
+
             for (int i = 0; i < parts.size(); i++) {
                 if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
                     redirectOutput = true;
@@ -119,7 +121,6 @@ public class Main {
                     break;
                 }
 
-                boolean background = false;
                 if(!parts.isEmpty()&& parts.get(parts.size() - 1).equals("&")){
                     background = true;
                     parts.remove(parts.size() -1);

@@ -155,50 +155,39 @@ public class Main {
             List<List<String>> commands,
             String cwd) throws Exception {
 
-        byte[] data = null;
+        List<ProcessBuilder> builders = new ArrayList<>();
 
         for (List<String> cmd : commands) {
 
-            if (isBuiltin(cmd.get(0))) {
+            ProcessBuilder pb = new ProcessBuilder(cmd);
 
-                data = runBuiltin(cmd, cwd).getBytes();
+            pb.directory(new File(cwd));
+            pb.environment().put("PATH", System.getenv("PATH"));
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-            } else {
+            builders.add(pb);
+        }
 
-                data = runExternal(cmd, data, cwd);
+        // Last command prints to terminal
+        builders.get(builders.size() - 1)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
+        List<Process> processes = ProcessBuilder.startPipeline(builders);
+
+        // Wait ONLY for the last process
+        processes.get(processes.size() - 1).waitFor();
+
+        // Kill anything still running (tail -f etc.)
+        for (Process p : processes) {
+            if (p.isAlive()) {
+                p.destroyForcibly();
             }
         }
 
-        if (data != null) {
-            System.out.write(data);
-            System.out.flush();
+        // Reap all processes
+        for (Process p : processes) {
+            p.waitFor();
         }
-    }
-
-    private static byte[] runExternal(
-            List<String> cmd,
-            byte[] input,
-            String cwd) throws Exception {
-
-        ProcessBuilder pb = new ProcessBuilder(cmd);
-
-        pb.directory(new File(cwd));
-        pb.environment().put("PATH", System.getenv("PATH"));
-
-        Process p = pb.start();
-
-        if (input != null) {
-            p.getOutputStream().write(input);
-        }
-
-        p.getOutputStream().close();
-
-        byte[] output = p.getInputStream().readAllBytes();
-
-        p.waitFor();
-
-        return output;
     }
 
     private static boolean isBuiltin(String cmd) {

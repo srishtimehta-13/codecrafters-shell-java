@@ -136,12 +136,11 @@ public class Main {
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
                 }
-
-                if (!parts.isEmpty() && parts.get(parts.size() - 1).equals("&")) {
+            }
+            if (!parts.isEmpty() && parts.get(parts.size() - 1).equals("&")) {
                     background = true;
                     parts.remove(parts.size() - 1);
                 }
-            }
 
             if (parts.get(0).equals("exit")) {
                 break; // or system.exist(0)

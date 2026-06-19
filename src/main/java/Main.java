@@ -183,7 +183,7 @@ public class Main {
 
                     if (cmd.equals("echo") || cmd.equals("exit")
                             || cmd.equals("type") || cmd.equals("pwd")
-                            || cmd.equals("cd")) {
+                            || cmd.equals("cd")|| cmd.equals("jobs")) {
 
                         output = cmd + " is a shell builtin";
 
@@ -275,7 +275,11 @@ public class Main {
                         }
                     }
                 }
-            } else {
+            } 
+            else if(parts.get(0).equals("jobs")){
+                
+            }
+            else {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 

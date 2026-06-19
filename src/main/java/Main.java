@@ -151,63 +151,60 @@ public class Main {
     }
 
     private static void runPipeline(List<String> left,
-            List<String> right,
-            String currentDirectory) throws Exception {
+                                List<String> right,
+                                String currentDirectory) throws Exception {
 
-        ProcessBuilder pb1 = new ProcessBuilder(left);
-        ProcessBuilder pb2 = new ProcessBuilder(right);
+    ProcessBuilder pb1 = new ProcessBuilder(left);
+    ProcessBuilder pb2 = new ProcessBuilder(right);
 
-        pb1.directory(new File(currentDirectory));
-        pb2.directory(new File(currentDirectory));
+    pb1.directory(new File(currentDirectory));
+    pb2.directory(new File(currentDirectory));
 
-        pb1.environment().put("PATH", System.getenv("PATH"));
-        pb2.environment().put("PATH", System.getenv("PATH"));
+    pb1.environment().put("PATH", System.getenv("PATH"));
+    pb2.environment().put("PATH", System.getenv("PATH"));
 
-        pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
-        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+    pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+    pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        Process p1 = pb1.start();
-        Process p2 = pb2.start();
+    Process p1 = pb1.start();
+    Process p2 = pb2.start();
 
-        Thread pipeThread = new Thread(() -> {
-            try (
-                    var in = p1.getInputStream(); var out = p2.getOutputStream()) {
-                in.transferTo(out);
-                out.flush();
-            } catch (Exception ignored) {
-                // head exited -> broken pipe is expected
-            }
-        });
-
-        pipeThread.start();
-
-        // Print output of second command
-        Thread outputThread = new Thread(() -> {
-            try (var in = p2.getInputStream()) {
-                byte[] buffer = new byte[8192];
-                int n;
-                while ((n = in.read(buffer)) != -1) {
-                    System.out.write(buffer, 0, n);
-                    System.out.flush();   // IMPORTANT
-                }
-            } catch (Exception ignored) {
-            }
-        });
-
-        outputThread.start();
-
-        // Wait only for second command
-        p2.waitFor();
-        outputThread.join();
-
-        // Stop first command if it's still running (tail -f)
-        if (p1.isAlive()) {
-            p1.destroyForcibly();
-            p1.waitFor();
+    Thread pipeThread = new Thread(() -> {
+        try (
+            var in = p1.getInputStream();
+            var out = p2.getOutputStream()
+        ) {
+            in.transferTo(out);
+            out.flush();
+        } catch (Exception ignored) {
         }
+    });
 
-        pipeThread.join();
+    Thread outputThread = new Thread(() -> {
+        try (var in = p2.getInputStream()) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                System.out.write(buf, 0, n);
+                System.out.flush();
+            }
+        } catch (Exception ignored) {
+        }
+    });
+
+    pipeThread.start();
+    outputThread.start();
+
+    p2.waitFor();
+
+    if (p1.isAlive()) {
+        p1.destroyForcibly();
+        p1.waitFor();
     }
+
+    pipeThread.join();
+    outputThread.join();
+}
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage

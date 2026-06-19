@@ -88,9 +88,17 @@ public class Main {
             boolean redirectOutput = false;
             String errorFile = null;
             boolean redirectError = false;
+            boolean appendOutput = false;
             for (int i = 0; i < parts.size(); i++) {
                 if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
                     redirectOutput = true;
+                    outputFile = parts.get(i + 1);
+                    parts = new ArrayList<>(parts.subList(0, i));
+                    break;
+                }
+                if (parts.get(i).equals(">>") || parts.get(i).equals("1>>")) {
+                    redirectOutput = true;
+                    appendOutput = true;
                     outputFile = parts.get(i + 1);
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
@@ -114,12 +122,20 @@ public class Main {
                     sb.append(parts.get(i));
                 }
                 String output = sb.toString();
-
                 if (redirectOutput) {
-                    java.nio.file.Files.write(
-                            java.nio.file.Paths.get(outputFile),
-                            (output + System.lineSeparator()).getBytes()
-                    );
+                    if (appendOutput) {
+                        Files.write(
+                                Paths.get(outputFile),
+                                (output + System.lineSeparator()).getBytes(),
+                                java.nio.file.StandardOpenOption.CREATE,
+                                java.nio.file.StandardOpenOption.APPEND
+                        );
+                    } else {
+                        Files.write(
+                                Paths.get(outputFile),
+                                (output + System.lineSeparator()).getBytes()
+                        );
+                    }
                 } else {
                     System.out.println(output);
                 }
@@ -130,10 +146,19 @@ public class Main {
                 String output = currentDirectory;
 
                 if (redirectOutput) {
-                    Files.write(
-                            Paths.get(outputFile),
-                            (output + System.lineSeparator()).getBytes()
-                    );
+                    if (appendOutput) {
+                        Files.write(
+                                Paths.get(outputFile),
+                                (output + System.lineSeparator()).getBytes(),
+                                java.nio.file.StandardOpenOption.CREATE,
+                                java.nio.file.StandardOpenOption.APPEND
+                        );
+                    } else {
+                        Files.write(
+                                Paths.get(outputFile),
+                                (output + System.lineSeparator()).getBytes()
+                        );
+                    }
                 } else {
                     System.out.println(output);
                 }
@@ -181,16 +206,21 @@ public class Main {
                     }
 
                     if (redirectOutput) {
-
-                        Files.write(
-                                Paths.get(outputFile),
-                                (output + System.lineSeparator()).getBytes()
-                        );
-
+                        if (appendOutput) {
+                            Files.write(
+                                    Paths.get(outputFile),
+                                    (output + System.lineSeparator()).getBytes(),
+                                    java.nio.file.StandardOpenOption.CREATE,
+                                    java.nio.file.StandardOpenOption.APPEND
+                            );
+                        } else {
+                            Files.write(
+                                    Paths.get(outputFile),
+                                    (output + System.lineSeparator()).getBytes()
+                            );
+                        }
                     } else {
-
                         System.out.println(output);
-
                     }
                 }
 
@@ -252,8 +282,11 @@ public class Main {
                     pb.environment().put("PATH", System.getenv("PATH"));
 
                     if (redirectOutput) {
-                        pb.redirectOutput(new File(outputFile));
-
+                        if (appendOutput) {
+                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(outputFile)));
+                        } else {
+                            pb.redirectOutput(new File(outputFile));
+                        }
                     } else {
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                     }

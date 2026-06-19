@@ -1,5 +1,6 @@
 
 import java.io.File;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -176,6 +177,91 @@ public class Main {
         processes.get(1).waitFor();
     }
 
+    private static boolean isBuiltin(String cmd) {
+        return switch (cmd) {
+            case "echo", "pwd", "type", "cd", "exit", "jobs" ->
+                true;
+            default ->
+                false;
+        };
+    }
+
+    private static String runBuiltin(List<String> parts, String currentDirectory) {
+
+        switch (parts.get(0)) {
+
+            case "echo":
+                return String.join(" ", parts.subList(1, parts.size())) + "\n";
+
+            case "pwd":
+                return currentDirectory + "\n";
+
+            case "type": {
+                String cmd = parts.get(1);
+
+                if (isBuiltin(cmd)) {
+                    return cmd + " is a shell builtin\n";
+                }
+
+                String path = System.getenv("PATH");
+                String[] directories = path.split(File.pathSeparator);
+
+                for (String dir : directories) {
+                    File file = new File(dir, cmd);
+                    if (file.exists() && file.canExecute()) {
+                        return cmd + " is " + file.getAbsolutePath() + "\n";
+                    }
+                }
+
+                return cmd + ": not found\n";
+            }
+
+            default:
+                return "";
+        }
+    }
+
+    private static void runBuiltinToExternal(
+            List<String> left,
+            List<String> right,
+            String currentDirectory) throws Exception {
+
+        String output = runBuiltin(left, currentDirectory);
+
+        ProcessBuilder pb = new ProcessBuilder(right);
+        pb.directory(new File(currentDirectory));
+        pb.environment().put("PATH", System.getenv("PATH"));
+
+        Process p = pb.start();
+
+        p.getOutputStream().write(output.getBytes());
+        p.getOutputStream().close();
+
+        p.getInputStream().transferTo(System.out);
+
+        p.waitFor();
+    }
+
+    private static void runExternalToBuiltin(
+            List<String> left,
+            List<String> right,
+            String currentDirectory) throws Exception {
+
+        ProcessBuilder pb = new ProcessBuilder(left);
+
+        pb.directory(new File(currentDirectory));
+        pb.environment().put("PATH", System.getenv("PATH"));
+
+        Process p = pb.start();
+
+        // Drain output so the external command doesn't block
+        p.getInputStream().transferTo(OutputStream.nullOutputStream());
+
+        p.waitFor();
+
+        System.out.print(runBuiltin(right, currentDirectory));
+    }
+
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
@@ -194,7 +280,28 @@ public class Main {
                 List<String> left = new ArrayList<>(parts.subList(0, pipeIndex));
                 List<String> right = new ArrayList<>(parts.subList(pipeIndex + 1, parts.size()));
 
-                runPipeline(left, right, currentDirectory);
+                boolean leftBuiltin = isBuiltin(left.get(0));
+                boolean rightBuiltin = isBuiltin(right.get(0));
+
+                if (!leftBuiltin && !rightBuiltin) {
+
+                    runPipeline(left, right, currentDirectory);
+
+                } else if (leftBuiltin && !rightBuiltin) {
+
+                    runBuiltinToExternal(left, right, currentDirectory);
+
+                } else if (!leftBuiltin && rightBuiltin) {
+
+                    runExternalToBuiltin(left, right, currentDirectory);
+
+                } else {
+
+                    // builtin | builtin
+                    System.out.print(runBuiltin(right, currentDirectory));
+
+                }
+
                 continue;
             }
             String outputFile = null;

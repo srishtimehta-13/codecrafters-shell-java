@@ -152,29 +152,53 @@ public class Main {
     }
 
     private static void runPipeline(
-            List<String> left,
-            List<String> right,
-            String currentDirectory) throws Exception {
+            List<List<String>> commands,
+            String cwd) throws Exception {
 
-        ProcessBuilder pb1 = new ProcessBuilder(left);
-        ProcessBuilder pb2 = new ProcessBuilder(right);
+        byte[] data = null;
 
-        pb1.directory(new File(currentDirectory));
-        pb2.directory(new File(currentDirectory));
+        for (List<String> cmd : commands) {
 
-        pb1.environment().put("PATH", System.getenv("PATH"));
-        pb2.environment().put("PATH", System.getenv("PATH"));
+            if (isBuiltin(cmd.get(0))) {
 
-        pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
-        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+                data = runBuiltin(cmd, cwd).getBytes();
 
-        pb2.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            } else {
 
-        List<Process> processes = ProcessBuilder.startPipeline(
-                List.of(pb1, pb2)
-        );
+                data = runExternal(cmd, data, cwd);
 
-        processes.get(1).waitFor();
+            }
+        }
+
+        if (data != null) {
+            System.out.write(data);
+            System.out.flush();
+        }
+    }
+
+    private static byte[] runExternal(
+            List<String> cmd,
+            byte[] input,
+            String cwd) throws Exception {
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
+
+        pb.directory(new File(cwd));
+        pb.environment().put("PATH", System.getenv("PATH"));
+
+        Process p = pb.start();
+
+        if (input != null) {
+            p.getOutputStream().write(input);
+        }
+
+        p.getOutputStream().close();
+
+        byte[] output = p.getInputStream().readAllBytes();
+
+        p.waitFor();
+
+        return output;
     }
 
     private static boolean isBuiltin(String cmd) {
@@ -274,34 +298,21 @@ public class Main {
 
             String command = sc.nextLine();
             List<String> parts = parseCommand(command);
-            int pipeIndex = parts.indexOf("|");
+            List<List<String>> commands = new ArrayList<>();
+            List<String> current = new ArrayList<>();
 
-            if (pipeIndex != -1) {
-                List<String> left = new ArrayList<>(parts.subList(0, pipeIndex));
-                List<String> right = new ArrayList<>(parts.subList(pipeIndex + 1, parts.size()));
-
-                boolean leftBuiltin = isBuiltin(left.get(0));
-                boolean rightBuiltin = isBuiltin(right.get(0));
-
-                if (!leftBuiltin && !rightBuiltin) {
-
-                    runPipeline(left, right, currentDirectory);
-
-                } else if (leftBuiltin && !rightBuiltin) {
-
-                    runBuiltinToExternal(left, right, currentDirectory);
-
-                } else if (!leftBuiltin && rightBuiltin) {
-
-                    runExternalToBuiltin(left, right, currentDirectory);
-
+            for (String token : parts) {
+                if (token.equals("|")) {
+                    commands.add(current);
+                    current = new ArrayList<>();
                 } else {
-
-                    // builtin | builtin
-                    System.out.print(runBuiltin(right, currentDirectory));
-
+                    current.add(token);
                 }
+            }
+            commands.add(current);
 
+            if (commands.size() > 1) {
+                runPipeline(commands, currentDirectory);
                 continue;
             }
             String outputFile = null;

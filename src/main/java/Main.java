@@ -95,10 +95,10 @@ public class Main {
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
                 }
-                if(parts.get(i).equals("2>")){
+                if (parts.get(i).equals("2>")) {
                     redirectError = true;
-                    errorFile = parts.get(i+1);
-                    parts = new ArrayList<>(parts.subList(0,i));
+                    errorFile = parts.get(i + 1);
+                    parts = new ArrayList<>(parts.subList(0, i));
                     break;
                 }
             }
@@ -123,6 +123,9 @@ public class Main {
                 } else {
                     System.out.println(output);
                 }
+                if (redirectError) {
+                    Files.write(Paths.get(errorFile), new byte[0]);
+                }
             } else if (parts.get(0).equals("pwd")) {
                 String output = currentDirectory;
 
@@ -133,6 +136,9 @@ public class Main {
                     );
                 } else {
                     System.out.println(output);
+                }
+                if (redirectError) {
+                    Files.write(Paths.get(errorFile), new byte[0]);
                 }
             } else if (parts.get(0).equals("type")) {
 
@@ -170,6 +176,9 @@ public class Main {
                             output = cmd + ": not found";
                         }
                     }
+                    if (redirectError) {
+                        Files.write(Paths.get(errorFile), new byte[0]);
+                    }
 
                     if (redirectOutput) {
 
@@ -206,7 +215,16 @@ public class Main {
                     if (dir.exists() && dir.isDirectory()) {
                         currentDirectory = dir.getCanonicalPath();
                     } else {
-                        System.out.println("cd: " + parts.get(1) + ": No such file or directory");
+                        String error = "cd: " + parts.get(1) + ": No such file or directory";
+
+                        if (redirectError) {
+                            Files.write(
+                                    Paths.get(errorFile),
+                                    (error + System.lineSeparator()).getBytes()
+                            );
+                        } else {
+                            System.out.println(error);
+                        }
                     }
                 }
             } else {
@@ -235,23 +253,30 @@ public class Main {
 
                     if (redirectOutput) {
                         pb.redirectOutput(new File(outputFile));
-                        
+
                     } else {
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                     }
                     if (redirectError) {
                         pb.redirectError(new File(errorFile));
-                        
+
                     } else {
                         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                     }
 
-
                     Process process = pb.start();
                     process.waitFor();
                 } else {
+                    String error = command + ": command not found";
 
-                    System.out.println(command + ": command not found");
+                    if (redirectError) {
+                        Files.write(
+                                Paths.get(errorFile),
+                                (error + System.lineSeparator()).getBytes()
+                        );
+                    } else {
+                        System.out.println(error);
+                    }
 
                 }
             }

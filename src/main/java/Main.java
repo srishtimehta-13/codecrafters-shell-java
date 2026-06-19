@@ -73,6 +73,24 @@ public class Main {
         return tokens;
     }
 
+
+    static class Job{
+        int jobNumber;
+        Process process;
+        String command;
+        String status;
+        
+        Job(int jobNumber, Process process, String command,String status){
+            this.jobNumber = jobNumber;
+            this.process = process;
+            this.command = command;
+            this.status = status;
+        }
+    }
+
+    static List<Job> jobs = new ArrayList<>();
+    static int nextJobNumber = 1;
+
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
@@ -284,7 +302,11 @@ public class Main {
                 }
             } 
             else if(parts.get(0).equals("jobs")){
-
+                for(Job job : jobs){
+                    if(job.process.isAlive()){
+                        System.out.printf("[%d]+ %-24s%s%n", job.jobNumber,job.status,job.command);
+                    }
+                }
             }
             else {
                 String path = System.getenv("PATH");
@@ -331,7 +353,12 @@ public class Main {
 
                     Process process = pb.start();
                     if(background){
-                        System.out.println("[1] " + process.pid());
+                        Job job = new Job(
+                            nextJobNumber,process,command,"Running"
+                        );
+                        jobs.add(job);
+                        System.out.println("[" + nextJobNumber + "] " + process.pid());
+                        nextJobNumber++;
                     }else{
                         process.waitFor();
                     }

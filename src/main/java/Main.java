@@ -73,14 +73,14 @@ public class Main {
         return tokens;
     }
 
+    static class Job {
 
-    static class Job{
         int jobNumber;
         Process process;
         String command;
         String status;
-        
-        Job(int jobNumber, Process process, String command,String status){
+
+        Job(int jobNumber, Process process, String command, String status) {
             this.jobNumber = jobNumber;
             this.process = process;
             this.command = command;
@@ -139,9 +139,9 @@ public class Main {
                     break;
                 }
 
-                if(!parts.isEmpty()&& parts.get(parts.size() - 1).equals("&")){
+                if (!parts.isEmpty() && parts.get(parts.size() - 1).equals("&")) {
                     background = true;
-                    parts.remove(parts.size() -1);
+                    parts.remove(parts.size() - 1);
                 }
             }
 
@@ -208,7 +208,7 @@ public class Main {
 
                     if (cmd.equals("echo") || cmd.equals("exit")
                             || cmd.equals("type") || cmd.equals("pwd")
-                            || cmd.equals("cd")|| cmd.equals("jobs")) {
+                            || cmd.equals("cd") || cmd.equals("jobs")) {
 
                         output = cmd + " is a shell builtin";
 
@@ -300,15 +300,48 @@ public class Main {
                         }
                     }
                 }
-            } 
-            else if(parts.get(0).equals("jobs")){
-                for(Job job : jobs){
-                    if(job.process.isAlive()){
-                        System.out.printf("[%d]+ %-24s%s%n", job.jobNumber,job.status,job.command);
+            } else if (parts.get(0).equals("jobs")) {
+
+                int lastRunning = -1;
+                int secondLastRunning = -1;
+
+                // Find the last two running jobs
+                for (int i = jobs.size() - 1; i >= 0; i--) {
+                    if (jobs.get(i).process.isAlive()) {
+                        if (lastRunning == -1) {
+                            lastRunning = i;
+                        } else {
+                            secondLastRunning = i;
+                            break;
+                        }
                     }
                 }
-            }
-            else {
+
+                // Print jobs in order
+                for (int i = 0; i < jobs.size(); i++) {
+
+                    Job job = jobs.get(i);
+
+                    if (!job.process.isAlive()) {
+                        continue;
+                    }
+
+                    char marker = ' ';
+                    if (i == lastRunning) {
+                        marker = '+';
+                    } else if (i == secondLastRunning) {
+                        marker = '-';
+                    }
+
+                    System.out.printf(
+                            "[%d]%c  %-24s%s%n",
+                            job.jobNumber,
+                            marker,
+                            job.status,
+                            job.command
+                    );
+                }
+            } else {
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
@@ -352,18 +385,17 @@ public class Main {
                     }
 
                     Process process = pb.start();
-                    if(background){
+                    if (background) {
                         Job job = new Job(
-                            nextJobNumber,process,command,"Running"
+                                nextJobNumber, process, command, "Running"
                         );
                         jobs.add(job);
                         System.out.println("[" + nextJobNumber + "] " + process.pid());
                         nextJobNumber++;
-                    }else{
+                    } else {
                         process.waitFor();
                     }
 
-                    
                 } else {
                     String error = command + ": command not found";
 

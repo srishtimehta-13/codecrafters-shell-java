@@ -89,6 +89,7 @@ public class Main {
             String errorFile = null;
             boolean redirectError = false;
             boolean appendOutput = false;
+            boolean appendError = false;
             for (int i = 0; i < parts.size(); i++) {
                 if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
                     redirectOutput = true;
@@ -105,6 +106,14 @@ public class Main {
                 }
                 if (parts.get(i).equals("2>")) {
                     redirectError = true;
+                    appendError = false;
+                    errorFile = parts.get(i + 1);
+                    parts = new ArrayList<>(parts.subList(0, i));
+                    break;
+                }
+                if (parts.get(i).equals("2>")) {
+                    redirectError = true;
+                    appendError = true;
                     errorFile = parts.get(i + 1);
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
@@ -248,10 +257,19 @@ public class Main {
                         String error = "cd: " + parts.get(1) + ": No such file or directory";
 
                         if (redirectError) {
-                            Files.write(
-                                    Paths.get(errorFile),
-                                    (error + System.lineSeparator()).getBytes()
-                            );
+                            if (appendError) {
+                                Files.write(
+                                        Paths.get(errorFile),
+                                        (error + System.lineSeparator()).getBytes(),
+                                        java.nio.file.StandardOpenOption.CREATE,
+                                        java.nio.file.StandardOpenOption.APPEND
+                                );
+                            } else {
+                                Files.write(
+                                        Paths.get(errorFile),
+                                        (error + System.lineSeparator()).getBytes()
+                                );
+                            }
                         } else {
                             System.out.println(error);
                         }
@@ -291,8 +309,11 @@ public class Main {
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                     }
                     if (redirectError) {
-                        pb.redirectError(new File(errorFile));
-
+                        if (appendError) {
+                            pb.redirectError(ProcessBuilder.Redirect.appendTo(new File(errorFile)));
+                        } else {
+                            pb.redirectError(new File(errorFile));
+                        }
                     } else {
                         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                     }
@@ -303,10 +324,19 @@ public class Main {
                     String error = command + ": command not found";
 
                     if (redirectError) {
-                        Files.write(
-                                Paths.get(errorFile),
-                                (error + System.lineSeparator()).getBytes()
-                        );
+                        if (appendError) {
+                            Files.write(
+                                    Paths.get(errorFile),
+                                    (error + System.lineSeparator()).getBytes(),
+                                    java.nio.file.StandardOpenOption.CREATE,
+                                    java.nio.file.StandardOpenOption.APPEND
+                            );
+                        } else {
+                            Files.write(
+                                    Paths.get(errorFile),
+                                    (error + System.lineSeparator()).getBytes()
+                            );
+                        }
                     } else {
                         System.out.println(error);
                     }

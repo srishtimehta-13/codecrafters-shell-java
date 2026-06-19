@@ -111,7 +111,7 @@ public class Main {
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
                 }
-                if (parts.get(i).equals("2>")) {
+                if (parts.get(i).equals("2>>")) {
                     redirectError = true;
                     appendError = true;
                     errorFile = parts.get(i + 1);

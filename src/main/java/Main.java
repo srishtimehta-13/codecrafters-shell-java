@@ -301,7 +301,49 @@ public class Main {
             commands.add(current);
 
             if (commands.size() > 1) {
-                runPipeline(commands, currentDirectory);
+
+                boolean hasBuiltin = false;
+
+                for (List<String> cmd : commands) {
+                    if (isBuiltin(cmd.get(0))) {
+                        hasBuiltin = true;
+                        break;
+                    }
+                }
+
+                if (!hasBuiltin) {
+
+                    // All commands are external
+                    runPipeline(commands, currentDirectory);
+
+                } else {
+
+                    // Builtin pipeline (only two commands for this stage)
+                    List<String> left = commands.get(0);
+                    List<String> right = commands.get(1);
+
+                    boolean leftBuiltin = isBuiltin(left.get(0));
+                    boolean rightBuiltin = isBuiltin(right.get(0));
+
+                    if (leftBuiltin && !rightBuiltin) {
+
+                        runBuiltinToExternal(left, right, currentDirectory);
+
+                    } else if (!leftBuiltin && rightBuiltin) {
+
+                        runExternalToBuiltin(left, right, currentDirectory);
+
+                    } else if (leftBuiltin && rightBuiltin) {
+
+                        System.out.print(runBuiltin(right, currentDirectory));
+
+                    } else {
+
+                        // Should never reach here because hasBuiltin == true
+                        runPipeline(commands, currentDirectory);
+                    }
+                }
+
                 continue;
             }
             String outputFile = null;

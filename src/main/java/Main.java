@@ -398,7 +398,7 @@ public class Main {
                     Process process = pb.start();
                     if (background) {
                         Job job = new Job(
-                                nextJobNumber, process, command
+                                nextJobNumber, process, String.join(" ",parts)
                         );
                         jobs.add(job);
                         System.out.println("[" + nextJobNumber + "] " + process.pid());

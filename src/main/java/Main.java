@@ -173,6 +173,7 @@ public class Main {
             try (
                     var in = p1.getInputStream(); var out = p2.getOutputStream()) {
                 in.transferTo(out);
+                out.flush();
             } catch (Exception ignored) {
                 // head exited -> broken pipe is expected
             }
@@ -181,14 +182,27 @@ public class Main {
         pipeThread.start();
 
         // Print output of second command
-        p2.getInputStream().transferTo(System.out);
+        Thread outputThread = new Thread(() -> {
+            try (var in = p2.getInputStream()) {
+                byte[] buffer = new byte[8192];
+                int n;
+                while ((n = in.read(buffer)) != -1) {
+                    System.out.write(buffer, 0, n);
+                    System.out.flush();   // IMPORTANT
+                }
+            } catch (Exception ignored) {
+            }
+        });
+
+        outputThread.start();
 
         // Wait only for second command
         p2.waitFor();
+        outputThread.join();
 
         // Stop first command if it's still running (tail -f)
         if (p1.isAlive()) {
-            p1.destroy();
+            p1.destroyForcibly();
             p1.waitFor();
         }
 

@@ -118,6 +118,12 @@ public class Main {
                     parts = new ArrayList<>(parts.subList(0, i));
                     break;
                 }
+
+                boolean background = false;
+                if(!parts.isEmpty()&& parts.get(parts.size() - 1).equals("&")){
+                    background = true;
+                    parts.remove(parts.size() -1);
+                }
             }
 
             if (parts.get(0).equals("exit")) {
@@ -277,7 +283,7 @@ public class Main {
                 }
             } 
             else if(parts.get(0).equals("jobs")){
-                
+
             }
             else {
                 String path = System.getenv("PATH");
@@ -323,7 +329,13 @@ public class Main {
                     }
 
                     Process process = pb.start();
-                    process.waitFor();
+                    if(background){
+                        System.out.println("[1] " + process.pid());
+                    }else{
+                        process.waitFor();
+                    }
+
+                    
                 } else {
                     String error = command + ": command not found";
 

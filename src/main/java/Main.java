@@ -150,6 +150,43 @@ public class Main {
         return max + 1;
     }
 
+    private static void runPipeline(List<String> left,
+            List<String> right,
+            String currentDirectory) throws Exception {
+
+        ProcessBuilder pb1 = new ProcessBuilder(left);
+        ProcessBuilder pb2 = new ProcessBuilder(right);
+
+        pb1.directory(new File(currentDirectory));
+        pb2.directory(new File(currentDirectory));
+
+        pb1.environment().put("PATH", System.getenv("PATH"));
+        pb2.environment().put("PATH", System.getenv("PATH"));
+
+        pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+        Process p1 = pb1.start();
+        Process p2 = pb2.start();
+
+        Thread t = new Thread(() -> {
+            try (
+                    var in = p1.getInputStream(); var out = p2.getOutputStream()) {
+                in.transferTo(out);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        t.start();
+
+        p2.getInputStream().transferTo(System.out);
+
+        t.join();
+        p1.waitFor();
+        p2.waitFor();
+    }
+
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
@@ -162,6 +199,15 @@ public class Main {
 
             String command = sc.nextLine();
             List<String> parts = parseCommand(command);
+            int pipeIndex = parts.indexOf("|");
+
+            if (pipeIndex != -1) {
+                List<String> left = new ArrayList<>(parts.subList(0, pipeIndex));
+                List<String> right = new ArrayList<>(parts.subList(pipeIndex + 1, parts.size()));
+
+                runPipeline(left, right, currentDirectory);
+                continue;
+            }
             String outputFile = null;
             boolean redirectOutput = false;
             String errorFile = null;

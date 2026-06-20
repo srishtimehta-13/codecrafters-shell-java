@@ -42,12 +42,15 @@ public class Main {
                     if (i + 1 < command.length()) {
                         char next = command.charAt(i + 1);
 
-                        // Inside double quotes, only these are escaped
                         if (next == '"' || next == '\\' || next == '$' || next == '`') {
+                            // Consume the backslash and append the escaped character
                             current.append(next);
                             i++;
+                        } else if (next == '\n') {
+                            // Backslash-newline disappears
+                            i++;
                         } else {
-                            // Backslash is literal for everything else
+                            // Backslash is preserved
                             current.append('\\');
                         }
                     } else {
@@ -55,13 +58,13 @@ public class Main {
                     }
                     continue;
                 }
-
             }
 
             if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
             } else if (ch == '"' && !inSingleQuote) {
                 inDoubleQuote = !inDoubleQuote;
+                continue;
             } else if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
 
                 if (current.length() > 0) {

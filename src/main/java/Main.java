@@ -5,7 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.history.DefaultHistory;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 public class Main {
 
@@ -294,15 +298,22 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
-        Scanner sc = new Scanner(System.in);
+        Terminal terminal = TerminalBuilder.builder()
+                .system(true)
+                .build();
+
+        LineReader reader = LineReaderBuilder.builder()
+                .terminal(terminal)
+                .history(new DefaultHistory())
+                .build();
+
         String currentDirectory = System.getProperty("user.dir");
 
         while (true) {
             reapJobs(false);
-            System.out.print("$ ");
-            System.out.flush();
+            
 
-            String command = sc.nextLine();
+            String command = reader.readLine("$ ");
             history.add(command);
             List<String> parts = parseCommand(command);
             List<List<String>> commands = new ArrayList<>();

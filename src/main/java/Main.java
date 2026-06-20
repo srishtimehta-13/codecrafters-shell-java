@@ -27,7 +27,9 @@ public class Main {
             char ch = command.charAt(i);
 
             if (escaping) {
-                current.append(ch);
+                if (!inDoubleQuote) {
+                    current.append(ch);
+                }
                 escaping = false;
                 continue;
             }

@@ -232,7 +232,14 @@ public class Main {
             case "history": {
                 StringBuilder sb = new StringBuilder();
 
-                for (int i = 0; i < history.size(); i++) {
+                int start = 0;
+
+                if (parts.size() > 1) {
+                    int n = Integer.parseInt(parts.get(1));
+                    start = Math.max(0, history.size() - n);
+                }
+
+                for (int i = start; i < history.size(); i++) {
                     sb.append(String.format("%5d  %s%n", i + 1, history.get(i)));
                 }
 
@@ -554,9 +561,17 @@ public class Main {
                         }
                     }
                 }
+
             } else if (parts.get(0).equals("history")) {
 
-                for (int i = 0; i < history.size(); i++) {
+                int start = 0;
+
+                if (parts.size() > 1) {
+                    int n = Integer.parseInt(parts.get(1));
+                    start = Math.max(0, history.size() - n);
+                }
+
+                for (int i = start; i < history.size(); i++) {
                     System.out.printf("%5d  %s%n", i + 1, history.get(i));
                 }
 

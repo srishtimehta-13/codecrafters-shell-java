@@ -1,5 +1,6 @@
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -235,6 +236,9 @@ public class Main {
                 return cmd + ": not found\n";
             }
             case "history": {
+                if(parts.size()>= 3 && parts.get(1).equals("-r")){
+                    return "";
+                }
                 StringBuilder sb = new StringBuilder();
 
                 int start = 0;
@@ -580,7 +584,21 @@ public class Main {
                 }
 
             } else if (parts.get(0).equals("history")) {
-
+                if (parts.size() >= 3 && parts.get(1).equals("-r")) {
+                    String filePath = parts.get(2);
+                    try {
+                        List<String> lines = Files.readAllLines(Paths.get(filePath));
+                        for (String fileLine : lines) {
+                            if (!fileLine.trim().isEmpty()) {
+                                history.add(fileLine);             // Add to your custom history list
+                                reader.getHistory().add(fileLine); // Add to JLine's arrow-key buffer
+                            }
+                        }
+                    } catch (IOException e) {
+                        System.err.println("history: cannot read file: " + e.getMessage());
+                    }
+                    continue; // Skip the printing logic below and loop to next prompt
+                }
                 int start = 0;
 
                 if (parts.size() > 1) {

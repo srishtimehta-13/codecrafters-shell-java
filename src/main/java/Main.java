@@ -137,6 +137,7 @@ public class Main {
     }
 
     static List<Job> jobs = new ArrayList<>();
+    static List<String> history = new ArrayList<>();
 
     private static int getNextJobNumber() {
         if (jobs.isEmpty()) {
@@ -192,7 +193,7 @@ public class Main {
 
     private static boolean isBuiltin(String cmd) {
         return switch (cmd) {
-            case "echo", "pwd", "type", "cd", "exit", "jobs" ->
+            case "echo", "pwd", "type", "cd", "exit", "jobs", "history" ->
                 true;
             default ->
                 false;
@@ -227,6 +228,15 @@ public class Main {
                 }
 
                 return cmd + ": not found\n";
+            }
+            case "history": {
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < history.size(); i++) {
+                    sb.append(String.format("%5d  %s%n", i + 1, history.get(i)));
+                }
+
+                return sb.toString();
             }
 
             default:
@@ -286,6 +296,7 @@ public class Main {
             System.out.flush();
 
             String command = sc.nextLine();
+            history.add(command);
             List<String> parts = parseCommand(command);
             List<List<String>> commands = new ArrayList<>();
             List<String> current = new ArrayList<>();
@@ -451,7 +462,7 @@ public class Main {
 
                     if (cmd.equals("echo") || cmd.equals("exit")
                             || cmd.equals("type") || cmd.equals("pwd")
-                            || cmd.equals("cd") || cmd.equals("jobs")) {
+                            || cmd.equals("cd") || cmd.equals("jobs") || cmd.equals("history")) {
 
                         output = cmd + " is a shell builtin";
 
@@ -543,6 +554,12 @@ public class Main {
                         }
                     }
                 }
+            } else if (parts.get(0).equals("history")) {
+
+                for (int i = 0; i < history.size(); i++) {
+                    System.out.printf("%5d  %s%n", i + 1, history.get(i));
+                }
+
             } else if (parts.get(0).equals("jobs")) {
 
                 reapJobs(true);

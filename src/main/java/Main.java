@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.history.DefaultHistory;
@@ -40,15 +41,18 @@ public class Main {
                 if (inDoubleQuote) {
                     if (i + 1 < command.length()) {
                         char next = command.charAt(i + 1);
-                        if (next == '"' || next == '\\') {
+
+                        // Inside double quotes, only these are escaped
+                        if (next == '"' || next == '\\' || next == '$' || next == '`') {
                             current.append(next);
                             i++;
                         } else {
+                            // Backslash is literal for everything else
                             current.append('\\');
                         }
-                        continue;
+                    } else {
+                        current.append('\\');
                     }
-                    current.append('\\');
                     continue;
                 }
 
@@ -311,7 +315,6 @@ public class Main {
 
         while (true) {
             reapJobs(false);
-            
 
             String command = reader.readLine("$ ");
             history.add(command);

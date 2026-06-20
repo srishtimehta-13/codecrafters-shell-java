@@ -65,7 +65,12 @@ public class Main {
             if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
             } else if (ch == '"' && !inSingleQuote) {
-                inDoubleQuote = !inDoubleQuote;
+                if (inDoubleQuote) {
+                    // Only close if this quote is not escaped.
+                    inDoubleQuote = false;
+                } else {
+                    inDoubleQuote = true;
+                }
                 continue;
             } else if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
 

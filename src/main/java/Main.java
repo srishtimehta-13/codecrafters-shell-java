@@ -21,68 +21,67 @@ public class Main {
 
         boolean inSingleQuote = false;
         boolean inDoubleQuote = false;
-        boolean escaping = false;
 
         for (int i = 0; i < command.length(); i++) {
             char ch = command.charAt(i);
 
-            if (escaping) {
-                if (!inDoubleQuote) {
-                    current.append(ch);
-                }
-                escaping = false;
-                continue;
-            }
-
+            // Handle backslash
             if (ch == '\\') {
-                if (!inSingleQuote && !inDoubleQuote) {
-                    escaping = true;
+
+                if (inSingleQuote) {
+                    current.append('\\');
                     continue;
                 }
 
                 if (inDoubleQuote) {
+
                     if (i + 1 < command.length()) {
                         char next = command.charAt(i + 1);
 
                         if (next == '"' || next == '\\' || next == '$' || next == '`') {
-                            // Consume the backslash and append the escaped character
                             current.append(next);
                             i++;
                         } else if (next == '\n') {
-                            // Backslash-newline disappears
                             i++;
                         } else {
-                            // Backslash is preserved
                             current.append('\\');
                         }
                     } else {
                         current.append('\\');
                     }
+
                     continue;
                 }
+
+                // outside quotes
+                if (i + 1 < command.length()) {
+                    current.append(command.charAt(++i));
+                }
+
+                continue;
             }
 
             if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
-            } else if (ch == '"' && !inSingleQuote) {
-                if (inDoubleQuote) {
-                    // Only close if this quote is not escaped.
-                    inDoubleQuote = false;
-                } else {
-                    inDoubleQuote = true;
-                }
                 continue;
-            } else if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
+            }
+
+            if (ch == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+
+            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
 
                 if (current.length() > 0) {
                     tokens.add(current.toString());
                     current.setLength(0);
                 }
 
-            } else {
-                current.append(ch);
+                continue;
             }
 
+            current.append(ch);
         }
 
         if (current.length() > 0) {

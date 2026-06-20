@@ -299,9 +299,6 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
-        // Initialize JLine Terminal and Reader
-        // Create a parser that does NOT process escapes or quotes 
-        // so your custom parseCommand gets the raw, unmodified string.
         DefaultParser parser = new DefaultParser();
         parser.setEscapeChars(new char[0]);
         
@@ -316,8 +313,6 @@ public class Main {
         while (true) {
             reapJobs(false);
 
-            // JLine automatically prints the prompt, reads the input, 
-            // intercepts arrow keys, and manages the history buffer!
             String command;
             try {
                 command = reader.readLine("$ ");

@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -298,9 +300,15 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
         // Initialize JLine Terminal and Reader
+        // Create a parser that does NOT process escapes or quotes 
+        // so your custom parseCommand gets the raw, unmodified string.
+        DefaultParser parser = new DefaultParser();
+        parser.setEscapeChars(new char[0]);
+        
         Terminal terminal = TerminalBuilder.terminal();
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
+                .parser(parser) // Inject the custom parser here
                 .build();
 
         String currentDirectory = System.getProperty("user.dir");

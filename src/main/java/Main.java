@@ -5,10 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -21,67 +19,55 @@ public class Main {
 
         boolean inSingleQuote = false;
         boolean inDoubleQuote = false;
+        boolean escaping = false;
 
         for (int i = 0; i < command.length(); i++) {
             char ch = command.charAt(i);
 
-            // Handle backslash
-            if (ch == '\\') {
+            if (escaping) {
+                current.append(ch);
+                escaping = false;
+                continue;
+            }
 
-                if (inSingleQuote) {
-                    current.append('\\');
+            if (ch == '\\') {
+                if (!inSingleQuote && !inDoubleQuote) {
+                    escaping = true;
                     continue;
                 }
 
                 if (inDoubleQuote) {
-
                     if (i + 1 < command.length()) {
                         char next = command.charAt(i + 1);
-
-                        if (next == '"' || next == '\\' || next == '$' || next == '`') {
+                        if (next == '"' || next == '\\') {
                             current.append(next);
-                            i++;
-                        } else if (next == '\n') {
                             i++;
                         } else {
                             current.append('\\');
                         }
-                    } else {
-                        current.append('\\');
+                        continue;
                     }
-
+                    current.append('\\');
                     continue;
                 }
 
-                // outside quotes
-                if (i + 1 < command.length()) {
-                    current.append(command.charAt(++i));
-                }
-
-                continue;
             }
 
             if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
-                continue;
-            }
-
-            if (ch == '"' && !inSingleQuote) {
+            } else if (ch == '"' && !inSingleQuote) {
                 inDoubleQuote = !inDoubleQuote;
-                continue;
-            }
-
-            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
+            } else if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
 
                 if (current.length() > 0) {
                     tokens.add(current.toString());
                     current.setLength(0);
                 }
 
-                continue;
+            } else {
+                current.append(ch);
             }
 
-            current.append(ch);
         }
 
         if (current.length() > 0) {
@@ -311,13 +297,10 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
-        Terminal terminal = TerminalBuilder.builder()
-                .system(true)
-                .build();
-
+        // Initialize JLine Terminal and Reader
+        Terminal terminal = TerminalBuilder.terminal();
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
-                .history(new DefaultHistory())
                 .build();
 
         String currentDirectory = System.getProperty("user.dir");
@@ -325,8 +308,16 @@ public class Main {
         while (true) {
             reapJobs(false);
 
-            String command = reader.readLine("$ ");
-            history.add(command);
+            // JLine automatically prints the prompt, reads the input, 
+            // intercepts arrow keys, and manages the history buffer!
+            String command;
+            try {
+                command = reader.readLine("$ ");
+            } catch (org.jline.reader.UserInterruptException | org.jline.reader.EndOfFileException e) {
+                break; // Handle Ctrl+C or Ctrl+D to gracefully exit
+            }
+
+            history.add(command); // Keep your manual history for your "history" builtin
             List<String> parts = parseCommand(command);
             List<List<String>> commands = new ArrayList<>();
             List<String> current = new ArrayList<>();
